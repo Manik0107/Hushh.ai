@@ -1,1 +1,1 @@
-Hushh.ai - Hackathon Project 
+Hushh.ai - Hackathon Project
