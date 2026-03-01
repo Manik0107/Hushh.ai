@@ -1,0 +1,24 @@
+# Core framework
+agno[google]>=1.4.0
+
+# Google Gemini (LLM + Embeddings)
+google-genai
+
+# Vector database (pgvector + PostgreSQL driver)
+pgvector>=0.3.0
+psycopg[binary]>=3.2.0
+sqlalchemy>=2.0.0
+
+# PDF processing
+pypdf>=4.0.0
+
+# API layer
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+
+# Environment & config
+python-dotenv>=1.0.0
+
+# CLI
+rich>=13.0.0
