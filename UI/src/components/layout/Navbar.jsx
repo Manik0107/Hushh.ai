@@ -27,12 +27,12 @@ export default function Navbar({
 
 
         <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white shadow-sm">
-            <BookOpen size={18} />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-black text-white shadow-sm">
+            <img src="/h_logo.png" alt="Hushh Study Logo" className="h-full w-full object-cover" />
           </div>
           <div className="min-w-0 hidden sm:block">
             <p className="truncate text-sm font-semibold text-slate-900">
-              Study<span className="gradient-text">Buddy</span>
+              Hushh <span className="gradient-text">Study</span>
             </p>
             <p className="truncate text-xs text-slate-500">Smart workspace for semester prep</p>
           </div>

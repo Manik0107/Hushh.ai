@@ -9,7 +9,7 @@ export default function HomeTab({ selectedSubject, selectedSemester, onGoToMater
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-slate-300/30 bg-slate-100 text-slate-700">
           <BookOpen size={30} />
         </div>
-        <h2 className="mt-5 text-2xl font-bold text-slate-900">Welcome to StudyBuddy</h2>
+        <h2 className="mt-5 text-2xl font-bold text-slate-900">Welcome to Hushh Study</h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-slate-400 sm:text-base">
           Select your semester and subject from the top bar to unlock units, discussions, quiz practice, and leaderboard tracking.
         </p>
