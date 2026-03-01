@@ -22,7 +22,7 @@ function transformQuestions(apiQuestions) {
 }
 
 export default function QuizTab({ selectedSubject, realMaterials }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(null);
   const [error, setError] = useState(null);
   const [activeQuiz, setActiveQuiz] = useState(null);
   const [scores, setScores] = useState({});
@@ -38,17 +38,17 @@ export default function QuizTab({ selectedSubject, realMaterials }) {
     );
   }
 
-  
+
   const hasRealData = realMaterials && Object.keys(realMaterials).length > 0;
   const realUnit = hasRealData ? Object.keys(realMaterials)[0] : 'general';
-  
+
   const realSubject = hasRealData ? selectedSubject.name.toLowerCase().split(' ').pop() : selectedSubject.name;
 
   const handleStart = async (difficulty) => {
     setError(null);
-    setLoading(true);
+    setLoading(difficulty);
     try {
-      const session = await startQuiz(realSubject, realUnit);
+      const session = await startQuiz(realSubject, realUnit, difficulty);
       sessionRef.current = session;
       roundsRef.current = session.rounds;
 
@@ -66,7 +66,7 @@ export default function QuizTab({ selectedSubject, realMaterials }) {
     } catch (err) {
       setError(err.message || 'Failed to start quiz. Is the API server running?');
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -130,9 +130,9 @@ export default function QuizTab({ selectedSubject, realMaterials }) {
               type="button"
               className="btn-primary mt-auto w-full text-sm"
               onClick={() => handleStart(difficulty)}
-              disabled={loading}
+              disabled={loading !== null}
             >
-              {loading ? 'Generating…' : 'Start Quiz'}
+              {loading === difficulty ? 'Generating…' : 'Start Quiz'}
             </button>
           </div>
         ))}

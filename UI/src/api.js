@@ -18,11 +18,11 @@ export async function uploadPDF(file) {
     return res.json();
 }
 
-export async function startQuiz(subject, unit) {
+export async function startQuiz(subject, unit, difficulty) {
     const res = await fetch(`${BASE_URL}/quiz/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subject, unit }),
+        body: JSON.stringify({ subject, unit, difficulty }),
     });
     if (!res.ok) throw new Error(`Quiz start failed: ${res.statusText}`);
     return res.json();

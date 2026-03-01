@@ -12,12 +12,13 @@ router = APIRouter(prefix="/quiz", tags=["Quiz"])
 class StartRequest(BaseModel):
     subject: str
     unit: str
+    difficulty: Difficulty
 
 
 @router.post("/start", response_model=QuizSession)
 async def quiz_start(request: StartRequest) -> QuizSession:
     try:
-        session = start_quiz(subject=request.subject, unit=request.unit)
+        session = start_quiz(subject=request.subject, unit=request.unit, difficulty=request.difficulty)
         return session
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc

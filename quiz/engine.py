@@ -16,18 +16,16 @@ _sessions: dict[str, QuizSession] = {}
 _wrong_answers: dict[str, list[str]] = {}
 
 
-def start_quiz(subject: str, unit: str) -> QuizSession:
-    rounds = []
-    for difficulty in [Difficulty.easy, Difficulty.medium, Difficulty.hard]:
-        questions = generate_questions(subject=subject, unit=unit, difficulty=difficulty, count=10)
-        rounds.append(QuizRound(difficulty=difficulty, questions=questions))
+def start_quiz(subject: str, unit: str, difficulty: Difficulty) -> QuizSession:
+    questions = generate_questions(subject=subject, unit=unit, difficulty=difficulty, count=10)
+    rounds = [QuizRound(difficulty=difficulty, questions=questions)]
 
     session = QuizSession(
         session_id=str(uuid.uuid4()),
         subject=subject,
         unit=unit,
         rounds=rounds,
-        scores={"easy": 0, "medium": 0, "hard": 0},
+        scores={difficulty.value: 0},
     )
 
     _sessions[session.session_id] = session
@@ -75,7 +73,7 @@ def get_result(session_id: str) -> Optional[QuizResult]:
         return None
 
     total = sum(session.scores.values())
-    max_total = 30
+    max_total = 10 * len(session.rounds)
 
     return QuizResult(
         session_id=session_id,
