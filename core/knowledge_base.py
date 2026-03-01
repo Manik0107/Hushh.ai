@@ -9,6 +9,14 @@ from config.settings import settings
 from core.vector_store import get_vector_store
 
 
+def _parse_pdf_metadata(pdf_path: Path) -> dict:
+    stem = pdf_path.stem
+    parts = stem.split("__")
+    subject = parts[0].replace("_", " ") if parts else stem
+    unit = parts[1].replace("_", " ") if len(parts) > 1 else "general"
+    return {"subject": subject, "unit": unit}
+
+
 def build_knowledge_base() -> Knowledge:
     return Knowledge(
         vector_db=get_vector_store(),
@@ -29,7 +37,8 @@ def ingest_pdfs(recreate: bool = False) -> Knowledge:
 
     reader = PDFReader()
     for pdf_path in pdf_dir.glob("*.pdf"):
-        kb.insert(path=str(pdf_path), reader=reader, upsert=True)
+        metadata = _parse_pdf_metadata(pdf_path)
+        kb.insert(path=str(pdf_path), reader=reader, metadata=metadata, upsert=True)
 
     return kb
 
@@ -41,6 +50,7 @@ def ingest_single_pdf(file_path: Path, recreate: bool = False) -> Knowledge:
         kb.vector_db.drop()
         kb.vector_db.create()
 
-    kb.insert(path=str(file_path), reader=PDFReader(), upsert=True)
+    metadata = _parse_pdf_metadata(file_path)
+    kb.insert(path=str(file_path), reader=PDFReader(), metadata=metadata, upsert=True)
 
     return kb
