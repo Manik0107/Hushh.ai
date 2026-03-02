@@ -5,10 +5,10 @@ import os
 from agno.agent import Agent
 from agno.models.google import Gemini
 
-from config.settings import settings
+from config.settings import settings, get_next_google_api_key
 from core.knowledge_base import build_knowledge_base, ingest_pdfs
 
-os.environ["GOOGLE_API_KEY"] = settings.google_api_key
+
 
 _SYSTEM_PROMPT = """\
 You are a friendly and patient study tutor. Your job is to help students understand
@@ -39,7 +39,7 @@ def build_agent(load_knowledge: bool = True, recreate: bool = False) -> Agent:
         knowledge_base = build_knowledge_base()
 
     return Agent(
-        model=Gemini(id=settings.gemini_model),
+        model=Gemini(id=settings.gemini_model, api_key=get_next_google_api_key()),
         knowledge=knowledge_base,
         search_knowledge=True,
         read_chat_history=True,

@@ -6,11 +6,11 @@ import os
 from agno.agent import Agent
 from agno.models.google import Gemini
 
-from config.settings import settings
+from config.settings import settings, get_next_google_api_key
 from core.knowledge_base import build_knowledge_base
 from quiz.models import Difficulty, Question
 
-os.environ["GOOGLE_API_KEY"] = settings.google_api_key
+
 
 _DIFFICULTY_RULES = {
     Difficulty.easy: (
@@ -68,7 +68,7 @@ def generate_questions(
     knowledge_base = build_knowledge_base()
 
     agent = Agent(
-        model=Gemini(id=settings.gemini_model),
+        model=Gemini(id=settings.gemini_model, api_key=get_next_google_api_key()),
         knowledge=knowledge_base,
         search_knowledge=True,
         markdown=False,
