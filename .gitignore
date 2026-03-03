@@ -24,3 +24,5 @@ data/pdfs/
 # IDE
 .idea/
 .vscode/
+
+node_modules/

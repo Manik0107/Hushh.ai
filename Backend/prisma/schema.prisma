@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  student
+  faculty
+  admin
+}
+
+enum MaterialType {
+  pdf
+  image
+  link
+}
+
+enum Difficulty {
+  Easy
+  Medium
+  Hard
+}
+
+// ─── Models ──────────────────────────────────────────────────────────────────
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  avatar          String?
+  email           String   @unique
+  passwordHash    String   @map("password_hash")
+  role            Role     @default(student)
+  currentSemester Int?     @map("current_semester") @db.SmallInt
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  unitProgress      UserUnitProgress[]
+  uploadedMaterials Material[]
+  threads           Thread[]
+  threadVotes       ThreadVote[]
+  threadComments    ThreadComment[]
+  createdQuizzes    Quiz[]
+  quizAttempts      QuizAttempt[]
+  subjectStats      UserSubjectStats[]
+  unitStats         UserUnitStats[]
+
+  @@map("users")
+}
+
+model Semester {
+  id       Int       @id @db.SmallInt
+  label    String
+  subjects Subject[]
+
+  @@map("semesters")
+}
+
+model Subject {
+  id         String  @id
+  semesterId Int     @map("semester_id") @db.SmallInt
+  code       String  @unique
+  name       String
+  isActive   Boolean @default(true) @map("is_active")
+
+  semester     Semester           @relation(fields: [semesterId], references: [id])
+  units        Unit[]
+  materials    Material[]
+  threads      Thread[]
+  quizzes      Quiz[]
+  subjectStats UserSubjectStats[]
+
+  @@map("subjects")
+}
+
+model Unit {
+  id          String   @id @default(uuid())
+  subjectId   String   @map("subject_id")
+  unitKey     String?  @map("unit_key")
+  number      Int      @db.SmallInt
+  name        String
+  teacherName String?  @map("teacher_name")
+  sortOrder   Int?     @map("sort_order") @db.SmallInt
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  subject      Subject            @relation(fields: [subjectId], references: [id])
+  materials    Material[]
+  threads      Thread[]
+  quizzes      Quiz[]
+  unitProgress UserUnitProgress[]
+  unitStats    UserUnitStats[]
+
+  @@map("units")
+}
+
+model UserUnitProgress {
+  userId          String   @map("user_id")
+  unitId          String   @map("unit_id")
+  progressPercent Int      @default(0) @map("progress_percent") @db.SmallInt
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  unit Unit @relation(fields: [unitId], references: [id])
+
+  @@id([userId, unitId])
+  @@map("user_unit_progress")
+}
+
+model Material {
+  id          String       @id @default(uuid())
+  subjectId   String       @map("subject_id")
+  unitId      String       @map("unit_id")
+  name        String
+  type        MaterialType
+  fileUrl     String?      @map("file_url")
+  externalUrl String?      @map("external_url")
+  sizeBytes   BigInt?      @map("size_bytes")
+  teacherName String?      @map("teacher_name")
+  uploadedBy  String?      @map("uploaded_by")
+  createdAt   DateTime     @default(now()) @map("created_at")
+
+  subject  Subject @relation(fields: [subjectId], references: [id])
+  unit     Unit    @relation(fields: [unitId], references: [id])
+  uploader User?   @relation(fields: [uploadedBy], references: [id])
+
+  @@map("materials")
+}
+
+model Tag {
+  id         String      @id @default(uuid())
+  name       String      @unique
+  threadTags ThreadTag[]
+
+  @@map("tags")
+}
+
+model Thread {
+  id             String   @id @default(uuid())
+  subjectId      String   @map("subject_id")
+  unitId         String?  @map("unit_id")
+  title          String
+  description    String
+  authorId       String   @map("author_id")
+  upvotesCount   Int      @default(0) @map("upvotes_count")
+  downvotesCount Int      @default(0) @map("downvotes_count")
+  commentsCount  Int      @default(0) @map("comments_count")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  subject    Subject         @relation(fields: [subjectId], references: [id])
+  unit       Unit?           @relation(fields: [unitId], references: [id])
+  author     User            @relation(fields: [authorId], references: [id])
+  threadTags ThreadTag[]
+  votes      ThreadVote[]
+  comments   ThreadComment[]
+
+  @@map("threads")
+}
+
+model ThreadTag {
+  threadId String @map("thread_id")
+  tagId    String @map("tag_id")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id])
+
+  @@id([threadId, tagId])
+  @@map("thread_tags")
+}
+
+model ThreadVote {
+  threadId  String   @map("thread_id")
+  userId    String   @map("user_id")
+  vote      Int      @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@id([threadId, userId])
+  @@map("thread_votes")
+}
+
+model ThreadComment {
+  id           String   @id @default(uuid())
+  threadId     String   @map("thread_id")
+  authorId     String   @map("author_id")
+  text         String
+  upvotesCount Int      @default(0) @map("upvotes_count")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  thread Thread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User   @relation(fields: [authorId], references: [id])
+
+  @@map("thread_comments")
+}
+
+model Quiz {
+  id           String     @id @default(uuid())
+  subjectId    String     @map("subject_id")
+  unitId       String     @map("unit_id")
+  unitLabel    String?    @map("unit_label")
+  name         String
+  difficulty   Difficulty
+  timeLimitMin Int        @map("time_limit_min")
+  isPublished  Boolean    @default(false) @map("is_published")
+  createdBy    String?    @map("created_by")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  subject   Subject       @relation(fields: [subjectId], references: [id])
+  unit      Unit          @relation(fields: [unitId], references: [id])
+  creator   User?         @relation(fields: [createdBy], references: [id])
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id                 String @id @default(uuid())
+  quizId             String @map("quiz_id")
+  questionText       String @map("question_text")
+  options            Json
+  correctOptionIndex Int    @map("correct_option_index") @db.SmallInt
+  sortOrder          Int?   @map("sort_order") @db.SmallInt
+
+  quiz    Quiz                @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  answers QuizAttemptAnswer[]
+
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id              String    @id @default(uuid())
+  quizId          String    @map("quiz_id")
+  userId          String    @map("user_id")
+  startedAt       DateTime  @default(now()) @map("started_at")
+  submittedAt     DateTime? @map("submitted_at")
+  scorePercent    Int?      @map("score_percent") @db.SmallInt
+  correctAnswers  Int?      @map("correct_answers") @db.SmallInt
+  totalQuestions  Int?      @map("total_questions") @db.SmallInt
+  timeLeftSeconds Int?      @map("time_left_seconds")
+
+  quiz    Quiz                @relation(fields: [quizId], references: [id])
+  user    User                @relation(fields: [userId], references: [id])
+  answers QuizAttemptAnswer[]
+
+  @@map("quiz_attempts")
+}
+
+model QuizAttemptAnswer {
+  attemptId           String  @map("attempt_id")
+  questionId          String  @map("question_id")
+  selectedOptionIndex Int     @map("selected_option_index") @db.SmallInt
+  isCorrect           Boolean @map("is_correct")
+
+  attempt  QuizAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question QuizQuestion @relation(fields: [questionId], references: [id])
+
+  @@id([attemptId, questionId])
+  @@map("quiz_attempt_answers")
+}
+
+model UserSubjectStats {
+  userId       String   @map("user_id")
+  subjectId    String   @map("subject_id")
+  totalPoints  Int      @default(0) @map("total_points")
+  quizzesTaken Int      @default(0) @map("quizzes_taken")
+  streakDays   Int      @default(0) @map("streak_days")
+  badge        String?
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user    User    @relation(fields: [userId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@id([userId, subjectId])
+  @@map("user_subject_stats")
+}
+
+model UserUnitStats {
+  userId       String   @map("user_id")
+  unitId       String   @map("unit_id")
+  points       Int      @default(0)
+  quizzesTaken Int      @default(0) @map("quizzes_taken")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  unit Unit @relation(fields: [unitId], references: [id])
+
+  @@id([userId, unitId])
+  @@map("user_unit_stats")
+}
